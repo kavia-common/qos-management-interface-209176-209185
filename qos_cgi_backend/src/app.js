@@ -44,13 +44,21 @@ app.use(express.json());
 // Mount routes
 app.use('/', routes);
 
+// 404 handler
+app.use((req, res) => {
+  return res.status(404).json({ status: 'error', message: 'Not Found' });
+});
+
 // Error handling middleware
+// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    status: 'error',
-    message: 'Internal Server Error',
-  });
+  // Centralized error handler to ensure JSON output
+  const status = err.status || 500;
+  const message = err.message || 'Internal Server Error';
+  if (process.env.NODE_ENV !== 'test') {
+    console.error(err.stack || err);
+  }
+  return res.status(status).json({ status: 'error', message });
 });
 
 module.exports = app;
